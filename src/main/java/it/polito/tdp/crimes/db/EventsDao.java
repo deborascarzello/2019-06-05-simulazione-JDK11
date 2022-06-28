@@ -7,9 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
+import it.polito.tdp.crimes.model.Distretti;
 import it.polito.tdp.crimes.model.Event;
-
 
 
 public class EventsDao {
@@ -55,6 +54,68 @@ public class EventsDao {
 			e.printStackTrace();
 			return null ;
 		}
+	}
+	
+	
+	public List<Integer> getVertici() {
+		
+		String sql="SELECT DISTINCT e.district_id "
+				+ "FROM EVENTS e ";
+		
+		Connection conn = DBConnect.getConnection();
+		List<Integer> result = new ArrayList<Integer>();
+		try {
+			
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while(res.next()) {
+				
+				result.add(res.getInt("e.district_id"));
+				
+			}
+			
+			conn.close();
+			return result;
+			
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null ;
+		}
+		
+	}
+	
+	public List<Distretti> getDistretti(int anno) {
+		
+		String sql = "SELECT e.district_id, AVG(e.geo_lon) AS lon, AVG(e.geo_lat) AS lat "
+				+ "FROM EVENTS e "
+				+ "WHERE YEAR(e.reported_date) = ? "
+				+ "GROUP BY e.district_id";
+		
+		Connection conn = DBConnect.getConnection();
+		List<Distretti> result = new ArrayList<Distretti>();
+		try {
+			
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			ResultSet res = st.executeQuery();
+			while(res.next()) {
+				
+				double lon = res.getDouble("lon");
+				double lat = res.getDouble("lat");
+				result.add(new Distretti(res.getInt("e.district_id"), lon, lat));
+				
+			}
+			
+			conn.close();
+			return result;
+			
+				
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null ;
+		}
+		
 	}
 
 }
